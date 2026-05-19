@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="J-Pro Lights and Sounds Rentals - Online Booking and Reservation System for events" />
+    <meta name="keywords" content="lights, sounds, rentals, booking, reservation, events, party" />
+    <meta name="author" content="J-Pro Lights and Sounds" />
+    
+    <!-- 🔴 INDICATOR: Change the title to your business name -->
+    <title>J-Pro Lights and Sounds Rentals - Online Booking System</title>
+    
+    <!-- Favicon - Replace with your own icon -->
+    <link rel="icon" type="image/png" href="/images/logo.png" />
+    
+    <style>
+      /* Loading screen while app loads */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e3a8a 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+      }
+      #loading-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .loading-logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #fbbf24, #f97316);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        animation: pulse 2s infinite;
+      }
+      .loading-logo span {
+        color: white;
+        font-size: 36px;
+        font-weight: bold;
+      }
+      .loading-text {
+        color: white;
+        font-size: 18px;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-top: 20px;
+      }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="loading-logo">
+        <span>J</span>
+      </div>
+      <div class="loading-text">J-Pro Lights and Sounds</div>
+      <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- App Container -->
+    <div id="root"></div>
+    
+    <!-- Hide loading screen when app is ready -->
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var loadingScreen = document.getElementById('loading-screen');
+          if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            setTimeout(function() {
+              loadingScreen.style.display = 'none';
+            }, 300);
+          }
+        }, 500);
+      });
+    </script>
+    
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
