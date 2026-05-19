@@ -10,7 +10,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Fix __dirname (ES Modules)
+// Fix __dirname (ESM support)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -18,27 +18,15 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 
-// ===============================
-// DATABASE CONNECTION
-// ===============================
+// =========================
+// DATABASE (SAFE INIT)
+// =========================
 let pool;
 
-try {
+const createPool = () => {
   if (process.env.DATABASE_URL) {
-    pool = mysql.createPool({
+    return mysql.createPool({
       uri: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0
-    });
-  } else {
-    pool = mysql.createPool({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME || 'defaultdb',
-      port: Number(process.env.DB_PORT) || 3306,
       ssl: { rejectUnauthorized: false },
       waitForConnections: true,
       connectionLimit: 10,
@@ -46,27 +34,38 @@ try {
     });
   }
 
+  return mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'defaultdb',
+    port: Number(process.env.DB_PORT) || 3306,
+    ssl: { rejectUnauthorized: false },
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  });
+};
+
+try {
+  pool = createPool();
   console.log('🔌 Database pool ready');
 } catch (err) {
   console.error('DB Error:', err);
 }
 
-// ===============================
+// =========================
 // API ROUTES
-// ===============================
+// =========================
 
-// Home API route
-app.get('/', (req, res) => {
-  res.send('J-Pro API Running');
-});
-
-// Health check
+// Health check (safe test)
 app.get('/api/health', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT 1');
     res.json({
       status: 'ok',
-      database: 'connected'
+      database: 'connected',
+      result: rows
     });
   } catch (err) {
     res.status(500).json({
@@ -76,17 +75,7 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// BOOKINGS
-app.get('/api/bookings', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT * FROM bookings');
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// USERS
+// Example routes
 app.get('/api/users', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM users');
@@ -96,20 +85,30 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-// ===============================
-// SERVE VITE FRONTEND
-// ===============================
+app.get('/api/bookings', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM bookings');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// =========================
+// FRONTEND SERVE (FIXED)
+// =========================
+
+// Serve Vite build folder
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// FIXED ROUTE (IMPORTANT FOR RENDER)
-// ❌ DO NOT USE '*'
+// IMPORTANT: DO NOT USE "*"
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-// ===============================
+// =========================
 // START SERVER
-// ===============================
+// =========================
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
